@@ -12,6 +12,7 @@
 #import "maintViewController.h"
 #import "UIElements.h"
 #import "JSONUpload.h"
+#import "tokenStorage.h"
 
 @interface ViewController ()
 
@@ -34,6 +35,11 @@
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     UIToolbar *mainToolbar = [[[UIElements alloc] createMainToolbar] init];
     [self.view addSubview:mainToolbar];
+    
+    //[tokenStorage deleteToken];
+    NSDictionary *tokenDict = [tokenStorage getToken];
+    
+    NSLog(@" token is :  %@ ", tokenDict[@"token"]);
     
     for (UIBarButtonItem *item in mainToolbar.items) {
         if (item.tag == 1 ) {

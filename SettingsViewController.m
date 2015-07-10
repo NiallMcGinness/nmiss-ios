@@ -7,7 +7,7 @@
 //
 
 #import "SettingsViewController.h"
-
+#import "tokenStorage.h"
 
 @interface SettingsViewController () <UITextFieldDelegate>
 
@@ -153,7 +153,30 @@
 
 -(void)storeTokenSecurely:(NSString *)token{
    // SecItemAdd(<#CFDictionaryRef attributes#>, <#CFTypeRef *result#>)
+    NSMutableDictionary *keychainItem = [NSMutableDictionary dictionary];
     NSLog(@" token is : %@ ", token );
+    NSString *website = @"https://nearmiss.co";
+    keychainItem[(__bridge id)kSecClass] = (__bridge id)kSecClassInternetPassword;
+    keychainItem[(__bridge id)kSecAttrAccessible] = (__bridge id)kSecAttrAccessibleWhenUnlocked;
+    keychainItem[(__bridge id)kSecAttrServer] = website;
+
+    if(SecItemCopyMatching((__bridge CFDictionaryRef)keychainItem, NULL) == noErr)
+    {
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"a token has already been entered", nil)
+                                                        message:NSLocalizedString(@"Please update it instead.", )
+                                                       delegate:nil
+                                              cancelButtonTitle:NSLocalizedString(@"OK", nil)
+                                              otherButtonTitles:nil];
+        [alert show];
+        
+    }else
+    {
+        keychainItem[(__bridge id)kSecValueData] = [token dataUsingEncoding:NSUTF8StringEncoding];
+        
+        OSStatus sts = SecItemAdd((__bridge CFDictionaryRef)keychainItem, NULL);
+        NSLog(@"Error Code: %d", (int)sts);
+    }
 }
 
 -(void)processPasswordResponse:(NSDictionary *)responseDict{
@@ -167,11 +190,12 @@
     }
     
     else if ([responseCode isEqualToString:@"passwordCorrect"]) {
-        [self storeTokenSecurely:responseDict[@"data"][@"token"]];
+        //[self storeTokenSecurely:responseDict[@"data"][@"token"]];
+        [tokenStorage storeTokenSecurely:responseDict[@"data"][@"token"]];
         [_emailTextField setHidden:YES];
         [_actionButton setHidden:YES];
         [_titleLabel setText:@" You are registered "];
-        NSString *successString = @"You can now view trending incidents, create & share help sheets and complete checklists.                                   For more information please visit wwww.nearmiss.co/info ";
+        NSString *successString = @"You can now view trending incidents, create & share help sheets and complete checklists.                                   For more information visit wwww.nearmiss.co/info ";
         [self.view addSubview:[self successView:successString]];
         [_emailTextField resignFirstResponder];
         return;
