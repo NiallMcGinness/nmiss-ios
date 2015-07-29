@@ -139,7 +139,7 @@
         [self.actionButton setTitle:@"submit" forState:UIControlStateNormal];
         [self.emailTextField setText:@""];
         [self.emailTextField setPlaceholder:@"enter activation code here"];
-        
+        _nextAction = @"activationTokenRequest";
         return [self reloadKeyboard];
     }
     else {
@@ -190,7 +190,7 @@
     }
     
     else if ([responseCode isEqualToString:@"passwordCorrect"]) {
-        //[self storeTokenSecurely:responseDict[@"data"][@"token"]];
+        
         [tokenStorage storeTokenSecurely:responseDict[@"data"][@"token"]];
         [_emailTextField setHidden:YES];
         [_actionButton setHidden:YES];
@@ -204,6 +204,24 @@
     else if ([responseCode isEqualToString:@"passwordIncorrect"]) {
          [_titleLabel setText:@" incorrect password, try again "];
          [_emailTextField setText:@""];
+    }
+    
+    else if ([responseCode isEqualToString:@"tokenCorrect"]) {
+        NSLog(@" mobile key is : %@ ", responseDict[@"data"][@"mobileKey"] );
+        [tokenStorage storeTokenSecurely:responseDict[@"data"][@"mobileKey"]];
+        [_emailTextField setHidden:YES];
+        [_actionButton setHidden:YES];
+        [_titleLabel setText:@" You are registered "];
+        NSString *successString = @"This device is now registered, to use the website or to register another device please visit wwww.nearmiss.co to set your password ";
+        [self.view addSubview:[self successView:successString]];
+        [_emailTextField resignFirstResponder];
+        return;
+        
+    }
+    
+    else if ([responseCode isEqualToString:@"tokenIncorrect"]) {
+        [_titleLabel setText:@" token is incorrect, try again "];
+        [_emailTextField setText:@""];
     }
     
     else  {
@@ -313,6 +331,14 @@
         [self sendPassword:uploadDict];
     }
     
+    else if ([_nextAction  isEqual: @"activationTokenRequest"]) {
+        NSDictionary *dataDict = @{@"email": _emailEntered,
+                                   @"token":self.emailTextField.text};
+        NSDictionary *uploadDict = @{@"type":@"activationTokenCheck", @"data":dataDict};
+        [self sendPassword:uploadDict];
+        
+    }
+    
     else {
     
     _emailEntered = self.emailTextField.text;
@@ -355,19 +381,35 @@
             NSLog(@" data in response :  %@ ", jsonResponse);
             if (!jsonResponse) {
                 NSLog(@" did not recieve confirmation from server ");
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    [_emailTextField resignFirstResponder];
+                    NSString *errorString = @"sorry, we are having technical trouble at present,  please exit the app and access nearmiss via our webpage at www.nearmiss.co";
+                    return [self.view addSubview:[self errorView:errorString]];
+
+                }];
             }
             
             else{
                 // nsurl session operates on background thread, to update UI we must pass back to main thread ..
                 [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-                    //[self.titleLabel setText:@"sorry but there has been a problem, please exit app and go to our webpage nearmiss.co/register" ];
+                    
                     NSLog(@" data in response :  %@ ", jsonResponse[@"type"] );
                     [self processRegisterResponse:jsonResponse[@"type"]];
                 }];
             }
         }
         else {
-            NSLog(@" error from server  :   %@", error);        }
+            NSLog(@" error from server  :   %@", error);
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                
+                [_emailTextField resignFirstResponder];
+                NSString *errorString = @"cannot communicate with server,  please exit the app and access nearmiss via our webpage at www.nearmiss.co";
+                return [self.view addSubview:[self errorView:errorString]];
+                
+            }];
+        
+        }
     }];
     
     [postDataTask resume];
