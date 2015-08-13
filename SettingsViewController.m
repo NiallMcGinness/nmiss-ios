@@ -111,7 +111,7 @@
         [self.emailTextField setSecureTextEntry:YES];
         [self.emailTextField setPlaceholder:@"type password here"];
       
-        NSLog(@" email retreived from email string  %@ ", _emailEntered );
+        NSLog(@" email retrieved from email string  %@ ", _emailEntered );
         _nextAction = @"passwordRequest";
         return [self reloadKeyboard];
     }
@@ -121,7 +121,7 @@
         [self.actionButton setTitle:@"submit" forState:UIControlStateNormal];
         [self.emailTextField setText:@""];
         [self.emailTextField setPlaceholder:@"type password here"];
-        
+        _nextAction = @"registerAsAdmin";
         return [self reloadKeyboard];
     }
     else if ([responseCode  isEqual: @"userOnActivationListActivated"]){
@@ -130,7 +130,7 @@
         [self.emailTextField setText:@""];
         [self.emailTextField setSecureTextEntry:YES];
         [self.emailTextField setPlaceholder:@"type password here"];
-        
+        _nextAction = @"passwordRequest";
         return [self reloadKeyboard];
         
     }
@@ -152,7 +152,7 @@
 }
 
 -(void)storeTokenSecurely:(NSString *)token{
-   // SecItemAdd(<#CFDictionaryRef attributes#>, <#CFTypeRef *result#>)
+   
     NSMutableDictionary *keychainItem = [NSMutableDictionary dictionary];
     NSLog(@" token is : %@ ", token );
     NSString *website = @"https://nearmiss.co";
@@ -222,6 +222,22 @@
     else if ([responseCode isEqualToString:@"tokenIncorrect"]) {
         [_titleLabel setText:@" token is incorrect, try again "];
         [_emailTextField setText:@""];
+    }
+    
+    else if ([responseCode isEqualToString:@"registeredSuccessfully"]) {
+        NSLog(@" mobile key is : %@ ", responseDict[@"data"][@"mobileKey"] );
+        [tokenStorage storeTokenSecurely:responseDict[@"data"][@"mobileKey"]];
+        NSDictionary *tokenDict = [tokenStorage getToken];
+        NSLog(@" stored token is :  %@  --- token from server is : %@", tokenDict[@"token"], responseDict[@"data"][@"mobileKey"]);
+        
+        [_emailTextField setHidden:YES];
+        [_actionButton setHidden:YES];
+        [_titleLabel setText:@" Your account is now active "];
+        NSString *successString = @"You have set up your account successfully and can add up to ten users to your group. To administer your group, sign in at wwww.nearmiss.co and click on the admin icon on the sidebar ";
+        [self.view addSubview:[self successView:successString]];
+        [_emailTextField resignFirstResponder];
+        return;
+        
     }
     
     else  {
@@ -332,9 +348,31 @@
     }
     
     else if ([_nextAction  isEqual: @"activationTokenRequest"]) {
+        
+        NSDictionary *ddets = [self deviceDetails];
+        
         NSDictionary *dataDict = @{@"email": _emailEntered,
-                                   @"token":self.emailTextField.text};
+                                   @"token":self.emailTextField.text,
+                                   @"UUID": ddets[@"UUID"],
+                                   @"deviceModel":ddets[@"deviceModel"],
+                                   @"OSVersion":ddets[@"OSVersion"]};
+
         NSDictionary *uploadDict = @{@"type":@"activationTokenCheck", @"data":dataDict};
+        [self sendPassword:uploadDict];
+        
+    }
+    
+    else if ([_nextAction  isEqual: @"registerAsAdmin"]) {
+        
+        NSDictionary *ddets = [self deviceDetails];
+        
+        NSDictionary *dataDict = @{@"email": _emailEntered,
+                                   @"password":self.emailTextField.text,
+                                   @"UUID": ddets[@"UUID"],
+                                   @"deviceModel":ddets[@"deviceModel"],
+                                   @"OSVersion":ddets[@"OSVersion"]};
+        
+        NSDictionary *uploadDict = @{@"type":@"registerAsAdmin", @"data":dataDict};
         [self sendPassword:uploadDict];
         
     }
@@ -359,7 +397,7 @@
 -(void)loadJSON:(NSDictionary *)uploadDictionary{
     
     NSError *setDataError;
-    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobile"];
+    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobileRegister"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
     NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
     
@@ -419,7 +457,7 @@
 -(void)sendPassword:(NSDictionary *)uploadDictionary{
     
     NSError *setDataError;
-    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobile"];
+    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobileRegister"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
     NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
     
@@ -441,6 +479,13 @@
             //NSLog(@" data in response :  %@ ", jsonResponse);
             if (!jsonResponse) {
                 NSLog(@" did not recieve confirmation from server ");
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    [_emailTextField resignFirstResponder];
+                    NSString *errorString = @"we can't connect to the server for some reason,  please check your internet connection or go to www.nearmiss.co";
+                    return [self.view addSubview:[self errorView:errorString]];
+                    
+                }];
             }
             
             else{

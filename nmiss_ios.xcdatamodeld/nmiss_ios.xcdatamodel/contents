@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7549" systemVersion="14D136" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7701" systemVersion="14E46" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="HelpData" representedClassName="HelpData" syncable="YES">
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="dateChanged" optional="YES" attributeType="Date" syncable="YES"/>
@@ -10,6 +10,7 @@
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="dateLastChanged" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="location" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="status" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <entity name="MaintData" representedClassName="MaintData" syncable="YES">
@@ -19,8 +20,8 @@
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <elements>
-        <element name="MaintData" positionX="-63" positionY="-18" width="128" height="105"/>
-        <element name="IncData" positionX="-54" positionY="18" width="128" height="105"/>
         <element name="HelpData" positionX="-36" positionY="45" width="128" height="105"/>
+        <element name="IncData" positionX="-54" positionY="18" width="128" height="120"/>
+        <element name="MaintData" positionX="-63" positionY="-18" width="128" height="105"/>
     </elements>
 </model>

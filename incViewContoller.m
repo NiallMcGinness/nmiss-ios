@@ -8,15 +8,19 @@
 
 #import "incViewContoller.h"
 #import "IncEntryViewController.h"
+#import "tokenStorage.h"
+#import "JSONUpload.h"
 #import "UIElements.h"
 #import "IconMaker.h"
 #import "CoreDataStack.h"
 #import "IncData.h"
 
+
 @interface incViewContoller () <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate>
 
 @property (nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
 @property (weak, nonatomic) IBOutlet UITableView *IncTable;
+@property (strong,nonatomic) NSDictionary *incsFromServer;
 
 @end
 
@@ -30,6 +34,7 @@
     [self updateTableView];
     [self.view addSubview:[self incToolbar]];
     [self.view addSubview:[self bottomToolbar]];
+    //[self getIncsFromServer];
     [self.fetchedResultsController performFetch:nil];
    }
 
@@ -41,6 +46,21 @@
 
 - (void)dismissSelf {
     [self.presentingViewController dismissViewControllerAnimated:NO completion:nil];
+}
+
+-(void)getIncsFromServer{
+    NSDictionary *token = [tokenStorage getToken];
+    NSLog(@" token sent %@", token[@"token"]);
+    NSDictionary *dataDict = @{@"mobileKey": token[@"token"] };
+    NSDictionary *uploadDict = @{@"type":@"incidentGet", @"data":dataDict};
+    [JSONUpload  loadJSON:uploadDict];
+}
+
+-(NSDictionary *)incsFromServer{
+    NSDictionary *incsFromServer = [NSDictionary dictionary];
+    _incsFromServer = incsFromServer;
+    return _incsFromServer;
+    
 }
 
 -(void)updateTableView {
@@ -121,9 +141,10 @@
     
 }
 
-- (CGFloat)tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 60.0f;
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 50;
 }
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
     static NSString *cellID =  @"IncCell";
@@ -136,6 +157,7 @@
     }
     //cell.textLabel.text = self.protEntry.protocolTitle;
     IncData *entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    
     cell.textLabel.text = entry.body;
     //cell.textLabel.text = @" No Incidents Entered ";
     return cell;
@@ -146,6 +168,8 @@
 -(UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
     return UITableViewCellEditingStyleDelete;
 }
+
+
 
 -(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -197,7 +221,7 @@
     NSFetchRequest *fetchrequest = [NSFetchRequest
                                     fetchRequestWithEntityName:@"IncData" ];
     
-    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"body" ascending:NO]];
+    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"body" ascending:YES]];
     
     return fetchrequest;
     

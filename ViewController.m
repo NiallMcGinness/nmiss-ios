@@ -204,7 +204,7 @@
 -(void)uploadEmail:(NSDictionary *)uploadDictionary{
     
     NSError *setDataError;
-    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobile"];
+    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobileRegister"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
     NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
     
