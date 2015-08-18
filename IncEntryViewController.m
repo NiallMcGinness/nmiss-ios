@@ -220,9 +220,13 @@
 -(UIButton *)moveDownButton{
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     CGFloat keyboardHeight = [_keyboardHeight floatValue];
-    UIButton *movedown = [[UIButton alloc] initWithFrame:CGRectMake(screenBounds.size.width - 50.0 , keyboardHeight + 5.0, 50.0, 50.0)];
-    [movedown setTitle:@"down" forState:UIControlStateNormal];
-    [movedown setBackgroundColor:[UIColor redColor]];
+    UIButton *movedown = [[UIButton alloc] initWithFrame:CGRectMake(screenBounds.size.width - 55.0 , keyboardHeight + 5.0, 45.0, 45.0)];
+    movedown.layer.cornerRadius = 25.0;
+   
+    UIImage *downImage = [UIImage imageNamed:@"down.png"];
+    [movedown setImage:downImage forState:UIControlStateNormal];
+    UIColor *nmissOrange = [UIColor colorWithRed:255.0/255.0 green:70.0/255.0 blue:0.0/255.0 alpha:1.0];
+    [movedown setBackgroundColor:nmissOrange];
     [movedown addTarget:self action:@selector(moveDownWasPressed) forControlEvents:UIControlEventTouchUpInside];
     return movedown;
 }
@@ -242,9 +246,12 @@
 
 -(UIButton *)moveUpButton{
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UIButton *moveUpButton = [[UIButton alloc] initWithFrame:CGRectMake(screenBounds.size.width - 50.0 , screenBounds.size.height - 50.0, 50.0, 50.0)];
-    [moveUpButton setTitle:@"up" forState:UIControlStateNormal];
-    [moveUpButton setBackgroundColor:[UIColor redColor]];
+    UIButton *moveUpButton = [[UIButton alloc] initWithFrame:CGRectMake(screenBounds.size.width - 55.0 , screenBounds.size.height - 55.0, 45.0, 45.0)];
+    moveUpButton.layer.cornerRadius = 25.0;
+    UIImage *upImage = [UIImage imageNamed:@"up.png"];
+    [moveUpButton setImage:upImage forState:UIControlStateNormal];
+    UIColor *nmissOrange = [UIColor colorWithRed:255.0/255.0 green:70.0/255.0 blue:0.0/255.0 alpha:1.0];
+    [moveUpButton setBackgroundColor:nmissOrange];
     [moveUpButton addTarget:self action:@selector(moveUpWasPressed) forControlEvents:UIControlEventTouchUpInside];
     return moveUpButton;
 }
@@ -253,7 +260,7 @@
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDuration:0.3];
     CGRect rect = self.view.frame;
-    rect.origin.y = -1.0;
+    rect.origin.y = -0.001;
     self.view.frame = rect;
     [_incTextView becomeFirstResponder];
     [UIView commitAnimations];
@@ -271,6 +278,7 @@
     if (textView == self.resolutionTextView) {
         [self.view addSubview:[self moveUpButton]];
         [_resolutionTextView becomeFirstResponder];
+        
     } else {
         [self.view addSubview:[self moveDownButton]];
         [textView becomeFirstResponder];
@@ -287,8 +295,6 @@
 - (void)textViewDidEndEditing:(UITextView *)textView
 {
     
-    
-
     NSLog(@" textview did end editing ");
     [textView resignFirstResponder];
 }
