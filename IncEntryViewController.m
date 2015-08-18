@@ -21,7 +21,7 @@
 @property (weak, nonatomic) IBOutlet UITextView *incTextView;
 
 @property (weak, nonatomic) IBOutlet UISwitch *statusSwitch;
-
+@property (strong, nonatomic) NSNumber *keyboardHeight;
 @property (strong, nonatomic) NSMutableDictionary *incEntryDict;
 @property (strong, nonatomic) NSMutableDictionary *incResolutionDict;
 
@@ -48,13 +48,8 @@
     [super viewWillAppear:animated];
     // register for keyboard notifications
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWillShow)
+                                             selector:@selector(getKeyboardHeight:)
                                                  name:UIKeyboardWillShowNotification
-                                               object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWillHide)
-                                                 name:UIKeyboardWillHideNotification
                                                object:nil];
 }
 
@@ -65,10 +60,23 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:UIKeyboardWillShowNotification
                                                   object:nil];
+}
+
+-(void)getKeyboardHeight:(NSNotification *)notification{
+    CGRect keyboardEndFrame = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGRect keyboardBeginFrame = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue];
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:UIKeyboardWillHideNotification
-                                                  object:nil];
+    CGRect keyboardFrameEnd = [self.view convertRect:keyboardEndFrame toView:nil];
+    CGRect keyboardFrameBegin = [self.view convertRect:keyboardBeginFrame toView:nil];
+    CGFloat keyboardHeight = (keyboardFrameBegin.origin.y - keyboardFrameEnd.origin.y);
+    [self keyboardHeight:keyboardHeight];
+    NSLog(@"keyboard height : %f",[_keyboardHeight floatValue]);
+}
+
+-(NSNumber *)keyboardHeight:(CGFloat)keyboardHeightFloat{
+    NSNumber *keyboardHeight = [NSNumber numberWithFloat:keyboardHeightFloat];
+    _keyboardHeight = keyboardHeight;
+    return _keyboardHeight;
 }
 
 
@@ -89,32 +97,6 @@
     }
 }
 
-- (void)keyboardFrameWillChange:(NSNotification *)notification
-{
-    
-    
-    CGRect keyboardEndFrame = [[[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    CGRect keyboardBeginFrame = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue];
-    UIViewAnimationCurve animationCurve = [[[notification userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] integerValue];
-    NSTimeInterval animationDuration = [[[notification userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] integerValue];
-    
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:animationDuration];
-    [UIView setAnimationCurve:animationCurve];
-    
-    CGRect newFrame = self.view.frame;
-    
-    if (!CGRectContainsPoint(newFrame, self.incTextView.frame.origin) ) {
-    
-    CGRect keyboardFrameEnd = [self.view convertRect:keyboardEndFrame toView:nil];
-    CGRect keyboardFrameBegin = [self.view convertRect:keyboardBeginFrame toView:nil];
-    
-    newFrame.origin.y -= (keyboardFrameBegin.origin.y - keyboardFrameEnd.origin.y);
-    self.view.frame = newFrame;
-    
-    [UIView commitAnimations];
-    }
-}
 
 -(void)checkSubviews{
     //NSLog(@" description of inc add %@" , [[self.view subviews] description]);
@@ -235,6 +217,48 @@
    return incTextView;
 }
 
+-(UIButton *)moveDownButton{
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    CGFloat keyboardHeight = [_keyboardHeight floatValue];
+    UIButton *movedown = [[UIButton alloc] initWithFrame:CGRectMake(screenBounds.size.width - 50.0 , keyboardHeight + 5.0, 50.0, 50.0)];
+    [movedown setTitle:@"down" forState:UIControlStateNormal];
+    [movedown setBackgroundColor:[UIColor redColor]];
+    [movedown addTarget:self action:@selector(moveDownWasPressed) forControlEvents:UIControlEventTouchUpInside];
+    return movedown;
+}
+
+-(void)moveDownWasPressed{
+    NSLog(@" down was pressed ");
+    [UIView beginAnimations:nil context:NULL];
+    [UIView setAnimationDuration:0.3];
+    
+    [_resolutionTextView becomeFirstResponder];
+    CGRect rect = self.view.frame;
+    rect.origin.y -= [_keyboardHeight floatValue];
+    self.view.frame = rect;
+    NSLog(@"keyboard height : %f",[_keyboardHeight floatValue]);
+    [UIView commitAnimations];
+}
+
+-(UIButton *)moveUpButton{
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    UIButton *moveUpButton = [[UIButton alloc] initWithFrame:CGRectMake(screenBounds.size.width - 50.0 , screenBounds.size.height - 50.0, 50.0, 50.0)];
+    [moveUpButton setTitle:@"up" forState:UIControlStateNormal];
+    [moveUpButton setBackgroundColor:[UIColor redColor]];
+    [moveUpButton addTarget:self action:@selector(moveUpWasPressed) forControlEvents:UIControlEventTouchUpInside];
+    return moveUpButton;
+}
+
+-(void)moveUpWasPressed{
+    [UIView beginAnimations:nil context:NULL];
+    [UIView setAnimationDuration:0.3];
+    CGRect rect = self.view.frame;
+    rect.origin.y = -1.0;
+    self.view.frame = rect;
+    [_incTextView becomeFirstResponder];
+    [UIView commitAnimations];
+}
+
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView{
    return YES;
     
@@ -245,8 +269,10 @@
     NSLog(@" text view has begun editing");
     [textView becomeFirstResponder];
     if (textView == self.resolutionTextView) {
+        [self.view addSubview:[self moveUpButton]];
         [_resolutionTextView becomeFirstResponder];
     } else {
+        [self.view addSubview:[self moveDownButton]];
         [textView becomeFirstResponder];
     }
 }
@@ -267,57 +293,6 @@
     [textView resignFirstResponder];
 }
 
-
--(void)keyboardWillShow{
-    // Animate the current view out of the way
-    NSLog(@" is view2 first repsonder ? %d ", [_resolutionTextView isFirstResponder] );
-    if (self.view.frame.origin.y >= 0 && [_resolutionTextView isFirstResponder] )
-    {
-        [self setViewMovedUp:YES];
-    }
-    else if (self.view.frame.origin.y < 0)
-    {
-        [self setViewMovedUp:NO];
-    }
-}
-
--(void)keyboardWillHide {
-    if (self.view.frame.origin.y >= 0)
-    {
-        [self setViewMovedUp:YES];
-    }
-    else if (self.view.frame.origin.y < 0)
-    {
-        [self setViewMovedUp:NO];
-    }
-}
-
-
-
-//method to move the view up/down whenever the keyboard is shown/dismissed
--(void)setViewMovedUp:(BOOL)movedUp
-{
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:0.3]; // if you want to slide up the view
-    
-    CGRect rect = self.view.frame;
-    if (movedUp)
-    {
-        // 1. move the view's origin up so that the text field that will be hidden come above the keyboard
-        // 2. increase the size of the view so that the area behind the keyboard is covered up.
-        rect.origin.y -= kOFFSET_FOR_KEYBOARD;
-        rect.size.height += kOFFSET_FOR_KEYBOARD;
-    }
-    else
-    {
-        // revert back to the normal state.
-        rect.origin.y += kOFFSET_FOR_KEYBOARD;
-        rect.size.height -= kOFFSET_FOR_KEYBOARD;
-    }
-    self.view.frame = rect;
-    
-    [UIView commitAnimations];
-}
 
 
 
