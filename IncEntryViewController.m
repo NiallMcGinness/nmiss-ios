@@ -239,6 +239,7 @@
     [_resolutionTextView becomeFirstResponder];
     CGRect rect = self.view.frame;
     rect.origin.y -= [_keyboardHeight floatValue];
+    NSLog(@"down button pressed: %f", rect.size.height);
     self.view.frame = rect;
     NSLog(@"keyboard height : %f",[_keyboardHeight floatValue]);
     [UIView commitAnimations];
@@ -274,12 +275,21 @@
 - (void)textViewDidBeginEditing:(UITextView *)textView
 {
     NSLog(@" text view has begun editing");
-    [textView becomeFirstResponder];
+    
     if (textView == self.resolutionTextView) {
+        CGRect rect = self.view.frame;
+        NSLog(@" y origin %f", rect.origin.y);
+        if (rect.origin.y == 0) {
+            [self moveDownWasPressed];
+            [self.view addSubview:[self moveDownButton]];
+        }
         [self.view addSubview:[self moveUpButton]];
         [_resolutionTextView becomeFirstResponder];
         
     } else {
+        CGRect rect = self.view.frame;
+        rect.origin.y = -0.001;
+        self.view.frame = rect;
         [self.view addSubview:[self moveDownButton]];
         [textView becomeFirstResponder];
     }
