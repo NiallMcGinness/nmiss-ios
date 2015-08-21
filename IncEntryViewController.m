@@ -11,7 +11,6 @@
 #import "CoreDataStack.h"
 #import "IncData.h"
 
-#define kOFFSET_FOR_KEYBOARD 200.0
 
 
 @interface IncEntryViewController () <NSFetchedResultsControllerDelegate, UITextViewDelegate, UIScrollViewDelegate>
@@ -23,7 +22,7 @@
 @property (weak, nonatomic) IBOutlet UISwitch *statusSwitch;
 @property (strong, nonatomic) NSNumber *keyboardHeight;
 @property (strong, nonatomic) NSMutableDictionary *incEntryDict;
-@property (strong, nonatomic) NSMutableDictionary *incResolutionDict;
+@property (strong, nonatomic) NSMutableDictionary *resolutionEntryDict;
 
 @property (weak, nonatomic) IBOutlet UILabel *resolvedStatusLabel;
 
@@ -86,6 +85,7 @@
     return _incEntryDict;
 }
 
+
 -(void)checkStatus{
     BOOL resolutionStatus = [_statusSwitch isOn];
     if (!resolutionStatus) {
@@ -132,47 +132,63 @@
 }
 
 -(void)updateInc{
-    self.entry.body = _incEntryDict[@"body"];
+    NSLog(@" insert called ... title %@ ... body %@ ",_incEntryDict[@"title"],_incEntryDict[@"body"]);
+    
+    if (_incEntryDict[@"title"] != nil) {
+        self.entry.title = _incEntryDict[@"title"];
+    }
+    if (_incEntryDict[@"body"] != nil ) {
+        self.entry.body = _incEntryDict[@"body"];
+    }
+    self.entry.status = [_statusSwitch isOn];
+    
     CoreDataStack *incCoreData = [CoreDataStack defaultStack];
     [incCoreData saveContext];
 }
 
 -(void)insertInc{
     
-    if (_incEntryDict[@"body"] != nil) {
+    if (_incEntryDict[@"title"] != nil) {
         
     
     CoreDataStack *incCoreData = [CoreDataStack defaultStack];
     IncData *newentry = [NSEntityDescription insertNewObjectForEntityForName:@"IncData" inManagedObjectContext:incCoreData.managedObjectContext];
     
+    newentry.title = _incEntryDict[@"title"];
     newentry.body = _incEntryDict[@"body"];
-    
+    newentry.status = [_statusSwitch isOn];
     [incCoreData saveContext];
     
     }
 }
-
--(void)noReponseToAddFromServer{
+/*
+-(void)sendNewIncToServer{
     
-    if (_incEntryDict[@"body"] != nil) {
-        
-        
-        CoreDataStack *incCoreData = [CoreDataStack defaultStack];
-        IncData *newentry = [NSEntityDescription insertNewObjectForEntityForName:@"IncData" inManagedObjectContext:incCoreData.managedObjectContext];
-        
-        newentry.body = _incEntryDict[@"body"];
-        
-        [incCoreData saveContext];
+    if (_incEntryDict[@"title"] != nil) {
+        NSString *title = _incEntryDict[@"title"];
+    } else {
+        return;
     }
 
+    if ([_statusSwitch isOn]) {
+        NSString *status = @"resolved";
+    } else {
+        NSString *status = @"unresolved";
+    }
+    
+   
+    
+    if (_incEntryDict[@"body"] != nil ) {
+        NSString *resolution = _incEntryDict[@"body"];
+    }
+        
+    
 }
-
-
- 
+*/
 - (IBAction)resolutionSwitchPressed:(UISwitch *)sender {
     
     [self checkStatus];
-    NSLog(@" state of switch %hhd",[sender isOn]);
+    NSLog(@" state of switch %d",[sender isOn]);
 }
 
 /*
@@ -206,13 +222,16 @@
 
 -(UITextView *)incTextView {
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UITextView *incTextView = [[UITextView alloc] initWithFrame:CGRectMake(5.0, 60.0, screenBounds.size.width , screenBounds.size.height *0.25)];
+    UITextView *incTextView = [[UITextView alloc] initWithFrame:CGRectMake(8.0, 90.0, screenBounds.size.width , screenBounds.size.height *0.24)];
+    [incTextView setFont:[UIFont fontWithName:@"ArialMT" size:14.0]];
     incTextView.delegate = self;
     if (self.entry) {
         
-        incTextView.text = self.entry.body;
-    
-    }
+        incTextView.text = self.entry.title;
+        _resolutionTextView.text = self.entry.body;
+        [_statusSwitch setOn:self.entry.status animated:NO];
+        [self checkStatus];
+}
     
    return incTextView;
 }
@@ -299,7 +318,15 @@
     
     NSString *currenttext = textView.text;
     NSLog(@" textview did change %@", textView.text);
-    [_incEntryDict setObject:currenttext forKey:@"body"];
+    
+   
+    if (textView == _resolutionTextView){
+        NSLog(@"resolutionTextView is being edited");
+        [_incEntryDict setObject:currenttext forKey:@"body"];
+
+    } else {
+        [_incEntryDict setObject:currenttext forKey:@"title"];
+    }
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView
@@ -309,7 +336,58 @@
     [textView resignFirstResponder];
 }
 
+#pragma mark  --- networking
 
+-(void)sendNewInc:(NSDictionary *)uploadDictionary{
+    
+    NSError *setDataError;
+    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobileRegister"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
+    NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
+    
+    if (!jsonData) NSLog(@" JSON data is nil %@ ", setDataError);
+    
+    [uploadRequest setValue:@"application/json" forHTTPHeaderField:@"Content-type"];
+    uploadRequest.HTTPBody = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
+    uploadRequest.HTTPMethod = @"PUT";
+    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:uploadRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        
+        if (!error) {
+            
+            NSLog(@" request response from server is :  %@   :  and description of response  %@", response, response.description);
+            NSDictionary* jsonResponse = [NSJSONSerialization JSONObjectWithData:data
+                                                                         options:kNilOptions
+                                                                           error:&error];
+            NSLog(@" data in response :  %@ ", jsonResponse);
+            if (!jsonResponse) {
+                NSLog(@" did not recieve confirmation from server ");
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Could not sync with server"
+                                                                    message:@"please check your internet connection"
+                                                                   delegate:self
+                                                          cancelButtonTitle:@"OK"
+                                                          otherButtonTitles:nil];
+                    [alert show];                }];
+            }
+            
+            else{
+                // nsurl session operates on background thread, to update UI we must pass back to main thread ..
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    NSLog(@" data in response :  %@ ", jsonResponse[@"type"] );
+                                    }];
+            }
+        }
+        else {
+            NSLog(@" error from server  :   %@", error);        }
+    }];
+    
+    [postDataTask resume];
+    
+}
 
 
 @end

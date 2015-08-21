@@ -27,12 +27,13 @@
             /// this loop will stop unselected tabbar items from being grey
             item.image = [item.image imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
             item.selectedImage = [item.image imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
-        
-    }
-    // Do any additional setup after loading the view.
-    //[self configTabBar];
-    
-}
+        if (item.tag == 3 ) {
+            [item setImage:[UIImage imageNamed:@"backRightPlain.png"]];
+            item.image = [item.image imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            item.selectedImage = [item.image imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            }
+        }
+  }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

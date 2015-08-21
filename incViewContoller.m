@@ -161,7 +161,7 @@
     //cell.textLabel.text = self.protEntry.protocolTitle;
     IncData *entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
-    cell.textLabel.text = entry.body;
+    cell.textLabel.text = entry.title;
     //cell.textLabel.text = @" No Incidents Entered ";
     return cell;
 }
@@ -224,7 +224,7 @@
     NSFetchRequest *fetchrequest = [NSFetchRequest
                                     fetchRequestWithEntityName:@"IncData" ];
     
-    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"body" ascending:YES]];
+    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES]];
     
     return fetchrequest;
     

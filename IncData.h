@@ -2,7 +2,7 @@
 //  IncData.h
 //  
 //
-//  Created by NIall McGinness on 2015-04-20.
+//  Created by NIall McGinness on 2015-08-21.
 //
 //
 
@@ -12,9 +12,10 @@
 
 @interface IncData : NSManagedObject
 
-@property (nonatomic, retain) NSString * title;
 @property (nonatomic, retain) NSString * body;
-@property (nonatomic, retain) NSString * location;
 @property (nonatomic) NSTimeInterval dateLastChanged;
+@property (nonatomic, retain) NSString * location;
+@property (nonatomic) BOOL status;
+@property (nonatomic, retain) NSString * title;
 
 @end

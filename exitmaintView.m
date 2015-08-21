@@ -17,6 +17,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    UITabBarItem *backButtonItem = [self tabBarItem];
+    [backButtonItem setTitle:@"back"];
+    [backButtonItem setImage:[UIImage imageNamed:@"backRightPlain.png"]];
     [self.presentingViewController dismissViewControllerAnimated:NO completion:nil];
 }
 

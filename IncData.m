@@ -2,7 +2,7 @@
 //  IncData.m
 //  
 //
-//  Created by NIall McGinness on 2015-04-20.
+//  Created by NIall McGinness on 2015-08-21.
 //
 //
 
@@ -11,9 +11,10 @@
 
 @implementation IncData
 
-@dynamic title;
 @dynamic body;
-@dynamic location;
 @dynamic dateLastChanged;
+@dynamic location;
+@dynamic status;
+@dynamic title;
 
 @end
