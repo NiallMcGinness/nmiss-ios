@@ -115,6 +115,7 @@
         _nextAction = @"passwordRequest";
         return [self reloadKeyboard];
     }
+  
     else if ([responseCode  isEqual: @"userUnregistered"]){
         [self.titleLabel setText:@"please choose a password"];
         [self.emailTextField setSecureTextEntry:YES];
@@ -340,12 +341,18 @@
     NSLog(@"nextAction string value is %@ ", _nextAction);
     
     if ([_nextAction  isEqual: @"passwordRequest"]){
+        NSDictionary *ddets = [self deviceDetails];
         
         NSDictionary *dataDict = @{@"email": _emailEntered,
-                                   @"password":self.emailTextField.text};
+                                   @"password":self.emailTextField.text,
+                                   @"UUID": ddets[@"UUID"],
+                                   @"deviceModel":ddets[@"deviceModel"],
+                                   @"OSVersion":ddets[@"OSVersion"]};
+        
         NSDictionary *uploadDict = @{@"type":@"passwordCheck", @"data":dataDict};
         [self sendPassword:uploadDict];
     }
+    
     
     else if ([_nextAction  isEqual: @"activationTokenRequest"]) {
         

@@ -13,6 +13,9 @@
 #import "UIElements.h"
 #import "JSONUpload.h"
 #import "tokenStorage.h"
+#import "syncInc.h"
+#import "CoreDataStack.h"
+#import "IncData.h"
 
 @interface ViewController ()
 
@@ -24,6 +27,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *maintButton;
 @property (weak, nonatomic) IBOutlet UIButton *incButton;
 
+@property (strong, nonatomic) NSMutableDictionary *resultFromServer;
 @end
 
 @implementation ViewController
@@ -31,15 +35,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    _resultFromServer = [NSMutableDictionary dictionary];
+    
     [self mainButtonSetup];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     UIToolbar *mainToolbar = [[[UIElements alloc] createMainToolbar] init];
     [self.view addSubview:mainToolbar];
+       NSDictionary *tokenDict = [tokenStorage getToken];
     
-    //[tokenStorage deleteToken];
-    NSDictionary *tokenDict = [tokenStorage getToken];
-    
-    NSLog(@" token is :  %@ ", tokenDict[@"token"]);
+    NSLog(@" token is :  %@ , response from server is %@", tokenDict[@"token"], _resultFromServer[@"response"]);
     
     for (UIBarButtonItem *item in mainToolbar.items) {
         if (item.tag == 1 ) {
@@ -49,17 +53,27 @@
             [item setAction:@selector(loadIncView)];
         }
      }
+    [self loadingView];
+    [self getIncsFromServer];
+    
 }
+
+
 
 -(void)viewDidAppear:(BOOL)animated{
     NSLog(@" main screen view did appear");
-     [self.navigationController setNavigationBarHidden:YES animated:NO];
+        [self.navigationController setNavigationBarHidden:YES animated:NO];
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
     
     
     if ([self.view viewWithTag:22]) [[self.view viewWithTag:22] removeFromSuperview];
+}
+
+-(void)notify{
+    
+    NSLog(@" dictionary has updated, response from server is %@",  _resultFromServer[@"response"]);
 }
 
 -(void)mainButtonSetup{
@@ -86,156 +100,6 @@
 - (IBAction)incWasPressed:(id)sender {
 }
 
--(NSDictionary *)deviceDetails{
-    
-    UIDevice *deviceType = [UIDevice currentDevice];
-    
-    NSString *deviceModel = deviceType.model.description;
-    NSString *deviceOSVersion = deviceType.systemVersion.description;
-    NSString *UUID = [[NSUUID UUID] UUIDString];
-    
-    NSArray *objectArray = @[UUID,deviceModel,deviceOSVersion];
-    NSArray *keyArray = @[@"UUID",@"deviceModel",@"OSVersion"];
-    
-    NSDictionary *ddets = [[NSDictionary alloc] initWithObjects:objectArray forKeys:keyArray];
-    
-    return ddets;
-    
-}
-
-
--(UITextField *)registerTextField{
-    
-    
-    
-    UITextField *registerTextField = [[UITextField alloc] initWithFrame:CGRectMake(5, 50, 250.0, 35.0 )];
-    [registerTextField setBackgroundColor:[UIColor whiteColor]];
-    
-    _registerTextField = registerTextField;
-    
-    
-    return _registerTextField;
-}
-
--(void)registerWasPressed{
-    
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSString *path = [documentsDirectory stringByAppendingPathComponent:@"userprofile.plist"];
-    NSDictionary *dictionary3 = [NSDictionary dictionaryWithContentsOfFile:path];
-    NSLog(@"contents of plist after write %@ " , dictionary3 );
-    
-    
-  }
-
--(void)triggerRegisterView{
-    
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UIView *registerView = [[UIView alloc] initWithFrame:CGRectMake(screenBounds.size.width * 0.075, screenBounds.size.height * 0.1, screenBounds.size.width * 0.85, screenBounds.size.height * 0.65)];
-    UIColor *nmissOrange = [UIColor colorWithRed:255.0/255.0 green:100.0/255.0 blue:0.0/255.0 alpha:1.0];
-    [registerView setBackgroundColor:nmissOrange];
-    [registerView setTag:22];
-    
-    UILabel *emailTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, 5, screenBounds.size.width * 0.85, screenBounds.size.height * 0.1)];
-    [emailTitle setText:@"enter your work email "];
-    [emailTitle setTintColor:[UIColor whiteColor]];
-    
-    UIButton *regButton = [self mainButton:CGRectMake(15, screenBounds.size.height * 0.3, screenBounds.size.width * 0.85, 70.0)];
-    [regButton setTitle:@" Save " forState:UIControlStateNormal];
-    [regButton addTarget:nil action:@selector(saveWasPressed) forControlEvents:UIControlEventTouchUpInside];
-    
-    [registerView addSubview:emailTitle];
-    [registerView addSubview:[self registerTextField]];
-    [registerView addSubview:regButton];
-    
-    [self.view addSubview:registerView];
-   
-    
-    [self registerWasPressed];
-
-}
-
--(void)saveWasPressed{
-    
-    
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSString *path = [documentsDirectory stringByAppendingPathComponent:@"userprofile.plist"];
-    
-    NSString *currentText = _registerTextField.text;
-    
-    NSDictionary *plistDict = [NSDictionary dictionaryWithObject:currentText
-                                                          forKey:@"email"];
-    
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    
-    if (![fileManager fileExistsAtPath: path])
-    {
-        NSError *errorStr;
-        NSString *bundle = [[NSBundle mainBundle] pathForResource:@"userprofile" ofType:@"plist"];
-        [fileManager copyItemAtPath:bundle toPath:path error:&errorStr];
-    }
-    
-    
-    NSLog(@" documents directory file path %@", path);
-    
-    NSDictionary *dataDict = @{@"email": currentText,
-                               @"device":[self deviceDetails]};
-    NSDictionary *uploadDict = @{@"type":@"registerNewDevice", @"data":dataDict};
-    
-    [JSONUpload loadJSON:uploadDict];
-       
-    NSError *error;
-    NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:plistDict format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
-    
-    if(plistData) {
-       
-        [plistData writeToFile:path atomically:YES];
-    }
-    else {
-        NSLog(@"error when serialising data for plist write for user settings : %@" , error);
-        
-    }
-   
-    if ([self.view viewWithTag:22]) [[self.view viewWithTag:22] removeFromSuperview];
-        
-}
-
--(void)uploadEmail:(NSDictionary *)uploadDictionary{
-    
-    NSError *setDataError;
-    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobileRegister"];
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
-    NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
-    
-    if (!jsonData) NSLog(@" JSON data is nil %@ ", setDataError);
-    
-    [uploadRequest setValue:@"application/json" forHTTPHeaderField:@"Content-type"];
-    uploadRequest.HTTPBody = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
-    uploadRequest.HTTPMethod = @"PUT";
-    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
-    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:uploadRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        
-        if (!error) {
-            
-            NSLog(@" request response from server is :  %@   :  and description of response  %@", response, response.description);
-            NSDictionary* jsonResponse = [NSJSONSerialization JSONObjectWithData:data
-                                                                         options:kNilOptions
-                                                                           error:&error];
-            NSLog(@" data in response :  %@ ", jsonResponse);
-            
-        }
-        else {
-            NSLog(@" error from server  :   %@", error);        }
-    }];
-    
-    [postDataTask resume];
-
-}
-
-
-
 -(UIButton *)mainButton:(CGRect)sizeOfButton{
     UIButton *mainButton = [[UIButton alloc] initWithFrame:sizeOfButton];
     return mainButton;
@@ -261,5 +125,102 @@
     [self presentViewController:maint animated:NO completion:nil];
 }
 
+-(void)getIncsFromServer{
+    NSDictionary *mobileKey = [tokenStorage getToken];
+    NSDictionary *uploadDictionary = @{@"type":@"incidentGet",@"data":@{ @"mobileKey":mobileKey[@"token"]} };
+    NSError *setDataError;
+    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/api"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
+    NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
+    
+    if (!jsonData) NSLog(@" JSON data is nil %@ ", setDataError);
+    
+    [uploadRequest setValue:@"application/json" forHTTPHeaderField:@"Content-type"];
+    uploadRequest.HTTPBody = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
+    uploadRequest.HTTPMethod = @"PUT";
+    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:uploadRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        
+        if (!error) {
+            
+            NSLog(@" request response from server is :  %@   :  and description of response  %@", response, response.description);
+            NSDictionary* jsonResponse = [NSJSONSerialization JSONObjectWithData:data
+                                                                         options:kNilOptions
+                                                                           error:&error];
+            NSLog(@" data in response :  %@ ", jsonResponse);
+            if (!jsonResponse) {
+                NSLog(@" did not recieve confirmation from server ");
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    [_resultFromServer setObject:@"error" forKey:@"response"];
+                    [self removeLoadingView];
+                }];
+            }
+            
+            else{
+                // nsurl session operates on background thread, to update UI we must pass back to main thread ..
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    [_resultFromServer setObject:jsonResponse forKey:@"response"];
+                    [self removeLoadingView];
+                }];
+            }
+        }
+        else {
+            
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                NSLog(@" error from server  :   %@", error);
+                [_resultFromServer setObject:@"error" forKey:@"response"];
+                [self removeLoadingView];
+            }];
+            
+        }
+    }];
+    
+    [postDataTask resume];
+    
+}
+
+-(void)loadingView{
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    UIView *loading = [[UIView alloc] initWithFrame:CGRectMake(0.0, 60.0, screenBounds.size.width, screenBounds.size.height)];
+    [loading setBackgroundColor:[UIColor blackColor]];
+    [loading setTag:10];
+    [self.view addSubview:loading];
+}
+
+-(void)removeLoadingView{
+    for (UIView *i in self.view.subviews){
+        if (i.tag == 10 ) {
+            [i removeFromSuperview];
+        }
+    }
+    
+    [self checkResponseFromServer];
+}
+
+-(void)checkResponseFromServer{
+    // NSLog(@" data in _result from server :  %@ ", _resultFromServer[@"response"]  );
+    //if (!_resultFromServer[@"response"][@"data"][@"indident"]) return;
+    
+    NSLog(@" check response from server triggered : ");
+    NSArray *incList =  _resultFromServer[@"response"][@"data"][@"incident"];
+    NSLog(@" data in result from server :  %@ ", incList  );
+    NSUInteger itemCount = [incList count];
+    NSLog(@" number of data items in result from server :  %d ", itemCount  );
+    CoreDataStack *incCoreData = [CoreDataStack defaultStack];
+    for (NSUInteger i = 0; i < itemCount; i++){
+        NSLog(@" item in list %@ ", incList[i][@"incident_id"]);
+        
+        IncData *newentry = [NSEntityDescription insertNewObjectForEntityForName:@"IncData" inManagedObjectContext:incCoreData.managedObjectContext];
+        
+        newentry.title = incList[i][@"description"];
+        //newentry.body = incList[i][@"resolution"];
+        NSLog(@" saving to coredata  %@ ", newentry.title );
+        [incCoreData saveContext];
+        
+    }
+}
 
 @end

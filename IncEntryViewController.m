@@ -89,7 +89,7 @@
 -(void)checkStatus{
     BOOL resolutionStatus = [_statusSwitch isOn];
     if (!resolutionStatus) {
-        [_resolvedStatusLabel setText:@"UNRESOLVED"];
+        [_resolvedStatusLabel setText:@"ONGOING"];
         [_resolvedStatusLabel setTextColor:[UIColor redColor]];
     } else {
         [_resolvedStatusLabel setText:@"RESOLVED"];
@@ -158,33 +158,43 @@
     newentry.body = _incEntryDict[@"body"];
     newentry.status = [_statusSwitch isOn];
     [incCoreData saveContext];
+    [self sendNewIncToServer];
     
     }
 }
-/*
+
 -(void)sendNewIncToServer{
+    NSMutableDictionary *incident = [NSMutableDictionary dictionary];
+    NSDictionary *mobileKey = [tokenStorage getToken];
     
     if (_incEntryDict[@"title"] != nil) {
-        NSString *title = _incEntryDict[@"title"];
+        [incident setObject:_incEntryDict[@"title"] forKey:@"description"];
+       
     } else {
         return;
     }
-
+    
+    NSMutableString * status = [[NSMutableString alloc] init];
     if ([_statusSwitch isOn]) {
-        NSString *status = @"resolved";
+        [status setString:@"resolved"];
     } else {
-        NSString *status = @"unresolved";
+        [status setString:@"unresolved" ];
     }
     
+    [incident setObject:status forKey:@"status"];
    
-    
     if (_incEntryDict[@"body"] != nil ) {
-        NSString *resolution = _incEntryDict[@"body"];
+        [incident setObject:_incEntryDict[@"body"] forKey:@"resolution"];
     }
+    
+    NSDictionary *data = [[NSDictionary alloc] initWithObjects:@[mobileKey[@"token"],incident] forKeys:@[@"mobileKey",@"incident"]];
+    
+    NSDictionary *uploadDict = [[NSDictionary alloc] initWithObjects:@[@"incidentAdd",data] forKeys:@[@"type",@"data" ]];
+    [self sendNewInc:uploadDict];
         
     
 }
-*/
+
 - (IBAction)resolutionSwitchPressed:(UISwitch *)sender {
     
     [self checkStatus];
@@ -341,7 +351,7 @@
 -(void)sendNewInc:(NSDictionary *)uploadDictionary{
     
     NSError *setDataError;
-    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/mobileRegister"];
+    NSURL *uploadURL = [NSURL URLWithString:@"https://nearmiss.co/api"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:uploadDictionary options:NSJSONWritingPrettyPrinted error:&setDataError];
     NSMutableURLRequest *uploadRequest = [NSMutableURLRequest requestWithURL:uploadURL];
     
@@ -366,7 +376,7 @@
                 [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                     
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Could not sync with server"
-                                                                    message:@"please check your internet connection"
+                                                                    message:@"our servers are down, we will get them back up ASAP"
                                                                    delegate:self
                                                           cancelButtonTitle:@"OK"
                                                           otherButtonTitles:nil];

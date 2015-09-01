@@ -108,7 +108,7 @@
 
 -(UITextView *)textView{
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(10.0, 50.0, screenBounds.size.width - 10 , screenBounds.size.height *0.65)];
+    UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(10.0, 50.0, screenBounds.size.width - 10 , 50.0)];
     textView.delegate = self;
     if (self.entry) {
         textView.text = self.entry.body;

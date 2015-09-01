@@ -67,7 +67,7 @@
 
 -(UITextView *)helpTextView{
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UITextView *helpTextView = [[UITextView alloc] initWithFrame:CGRectMake(10.0, 50.0, screenBounds.size.width - 10 , screenBounds.size.height *0.65)];
+    UITextView *helpTextView = [[UITextView alloc] initWithFrame:CGRectMake(10.0, 50.0, screenBounds.size.width - 10 , 50.0)];
     helpTextView.delegate = self;
     if (self.entry) {
        

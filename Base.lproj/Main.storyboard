@@ -172,7 +172,18 @@
                     <view key="view" contentMode="scaleToFill" id="GOt-Cd-XDf">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="y6s-cc-02P">
+                                <rect key="frame" x="16" y="124" width="568" height="591"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </tableView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="y6s-cc-02P" firstAttribute="trailing" secondItem="GOt-Cd-XDf" secondAttribute="trailingMargin" constant="5" id="3GE-Mk-pFK"/>
+                            <constraint firstItem="y6s-cc-02P" firstAttribute="leading" secondItem="GOt-Cd-XDf" secondAttribute="leadingMargin" constant="5" id="WPS-Dn-UtH"/>
+                            <constraint firstItem="y6s-cc-02P" firstAttribute="top" secondItem="3fa-7W-Fzf" secondAttribute="bottom" constant="80" id="cn2-Qb-Ore"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="IGV-cz-b1u"/>
                 </viewController>
@@ -234,11 +245,11 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="88" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="Kcy-4r-66E">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="Kcy-4r-66E">
                                 <rect key="frame" x="0.0" y="-50" width="600" height="600"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="IncCell" rowHeight="88" id="Dv1-BE-dh7">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="IncCell" id="Dv1-BE-dh7">
                                         <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Dv1-BE-dh7" id="03J-U2-YR1">
@@ -255,6 +266,7 @@
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="Kcy-4r-66E" secondAttribute="trailing" constant="-16" id="It7-Xm-zMy"/>
                             <constraint firstItem="Kcy-4r-66E" firstAttribute="leading" secondItem="nBN-ae-xUJ" secondAttribute="leadingMargin" constant="-16" id="Mp4-ev-SK2"/>
+                            <constraint firstItem="TM6-Oo-EZo" firstAttribute="top" secondItem="Kcy-4r-66E" secondAttribute="bottom" constant="70" id="Uiy-lj-ky7"/>
                             <constraint firstItem="Kcy-4r-66E" firstAttribute="top" secondItem="nBN-ae-xUJ" secondAttribute="topMargin" constant="80" id="ji1-3A-ghw"/>
                         </constraints>
                     </view>
@@ -471,7 +483,18 @@
                     <view key="view" contentMode="scaleToFill" id="fyI-WZ-uOW">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="FHF-CF-7zK">
+                                <rect key="frame" x="16" y="72" width="515" height="531"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </tableView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="FHF-CF-7zK" firstAttribute="top" secondItem="cmM-9b-Agd" secondAttribute="bottom" constant="80" id="3ES-a9-KmD"/>
+                            <constraint firstItem="FHF-CF-7zK" firstAttribute="leading" secondItem="fyI-WZ-uOW" secondAttribute="leadingMargin" constant="5" id="Tjs-fu-UNW"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="FHF-CF-7zK" secondAttribute="trailing" constant="5" id="sHi-dn-COH"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="IlL-9A-KsX"/>
                 </viewController>
