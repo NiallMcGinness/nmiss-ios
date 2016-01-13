@@ -12,6 +12,7 @@
 #import "CoreDataStack.h"
 #import "HelpData.h"
 #import "HelpEntryViewController.h"
+#import "HelpCell.h"
 
 @interface helpViewController () <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate>
 
@@ -112,20 +113,21 @@
 }
 
 
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
     static NSString *cellID =  @"helpCell";
     
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
+    HelpCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (cell == nil ) {
         
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+        cell = [[HelpCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
     }
     
     HelpData *entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
-    cell.textLabel.text = entry.body;
+    cell.textLabel.text = entry.title;
     
     return cell;
 }
@@ -190,7 +192,7 @@
     NSFetchRequest *fetchrequest = [NSFetchRequest
                                     fetchRequestWithEntityName:@"HelpData" ];
     
-    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"body" ascending:NO]];
+    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:NO]];
     
     return fetchrequest;
     

@@ -14,6 +14,7 @@
 #import "IconMaker.h"
 #import "CoreDataStack.h"
 #import "IncData.h"
+#import "IncCell.h"
 
 
 @interface incViewContoller () <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate>
@@ -37,6 +38,10 @@
     //[self getIncsFromServer];
     [self.fetchedResultsController performFetch:nil];
    }
+ 
+
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -116,8 +121,7 @@
         UINavigationController *navigationController = segue.destinationViewController;
         IncEntryViewController *IncTitleViewController = (IncEntryViewController *) navigationController.topViewController;
         IncTitleViewController.entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
-    
-    }
+            }
         
 }
 
@@ -152,17 +156,16 @@
     
     static NSString *cellID =  @"IncCell";
     
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
+    IncCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (cell == nil) {
-    
-    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+        cell = [[IncCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
     }
-    //cell.textLabel.text = self.protEntry.protocolTitle;
+    
     IncData *entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
-    cell.textLabel.text = entry.title;
-    //cell.textLabel.text = @" No Incidents Entered ";
+    cell.textLabel.text = entry.incDescription;
+    
     return cell;
 }
 
@@ -202,9 +205,7 @@
 }
 
 -(void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-    NSLog(@"controller did chnage content called");
-    [self.IncTable endUpdates];
-    
+      [self.IncTable endUpdates];
 }
 
 -(void)controller:(NSFetchedResultsController *)controller didChangeSection:(id<NSFetchedResultsSectionInfo>)sectionInfo atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type {
@@ -224,7 +225,7 @@
     NSFetchRequest *fetchrequest = [NSFetchRequest
                                     fetchRequestWithEntityName:@"IncData" ];
     
-    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES]];
+    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"incDescription" ascending:YES]];
     
     return fetchrequest;
     
@@ -240,13 +241,14 @@
     _fetchedResultsController =[[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:coreDataStack.managedObjectContext sectionNameKeyPath:nil cacheName:nil];
     
     _fetchedResultsController.delegate = self;
-    [self numberOfEntries];
+    
     return _fetchedResultsController;
 }
 
 
 -(NSInteger)numberOfEntries {
     NSInteger entries = self.fetchedResultsController.fetchedObjects.count;
+    NSLog(@" number of entries in core data %ld", (long)entries);
     return entries;
 }
 

@@ -12,6 +12,7 @@
 
 @interface MaintData : NSManagedObject
 
+@property (nonatomic, retain) NSString * checklistID;
 @property (nonatomic, retain) NSString * title;
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic) NSTimeInterval dateLastChanged;

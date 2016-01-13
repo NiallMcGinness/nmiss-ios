@@ -11,6 +11,9 @@
 
 @implementation HelpData
 
+
+@dynamic helpsheetID;
+@dynamic location;
 @dynamic title;
 @dynamic body;
 @dynamic dateChanged;

@@ -31,7 +31,7 @@
 @implementation IncEntryViewController
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
+   // [super viewDidLoad];
     // Do any additional setup after loading the view.
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     [self checkSubviews];
@@ -135,12 +135,19 @@
     NSLog(@" insert called ... title %@ ... body %@ ",_incEntryDict[@"title"],_incEntryDict[@"body"]);
     
     if (_incEntryDict[@"title"] != nil) {
-        self.entry.title = _incEntryDict[@"title"];
+        self.entry.incDescription = _incEntryDict[@"title"];
     }
     if (_incEntryDict[@"body"] != nil ) {
-        self.entry.body = _incEntryDict[@"body"];
+        self.entry.incResolution = _incEntryDict[@"body"];
     }
-    self.entry.status = [_statusSwitch isOn];
+    
+    if ([_statusSwitch isOn]) {
+        self.entry.status = @"resolved";
+    }
+    else {
+        self.entry.status = @"ongoing";
+    }
+
     
     CoreDataStack *incCoreData = [CoreDataStack defaultStack];
     [incCoreData saveContext];
@@ -154,9 +161,15 @@
     CoreDataStack *incCoreData = [CoreDataStack defaultStack];
     IncData *newentry = [NSEntityDescription insertNewObjectForEntityForName:@"IncData" inManagedObjectContext:incCoreData.managedObjectContext];
     
-    newentry.title = _incEntryDict[@"title"];
-    newentry.body = _incEntryDict[@"body"];
-    newentry.status = [_statusSwitch isOn];
+    newentry.incDescription = _incEntryDict[@"title"];
+    newentry.incResolution = _incEntryDict[@"body"];
+        if ([_statusSwitch isOn]) {
+           newentry.status = @"resolved";
+        }
+        else {
+           newentry.status = @"ongoing";
+        }
+        
     [incCoreData saveContext];
     [self sendNewIncToServer];
     
@@ -215,12 +228,12 @@
     UIToolbar *editToolbar = [[UIElements alloc] createTopToolBar];
     editToolbar.clipsToBounds = true;
     
-    UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:nil    action:@selector(saveWasPressed)];
+    UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:@"save" style:UIBarButtonItemStylePlain target:nil    action:@selector(saveWasPressed)];
     
     UIBarButtonItem *flexibleButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
     
     
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:nil action:@selector(dismissSelf)];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"close" style:UIBarButtonItemStylePlain target:nil action:@selector(dismissSelf)];
     
     
     [editToolbar setItems:@[saveButton, flexibleButton, cancelButton] animated:false];
@@ -237,9 +250,14 @@
     incTextView.delegate = self;
     if (self.entry) {
         
-        incTextView.text = self.entry.title;
-        _resolutionTextView.text = self.entry.body;
-        [_statusSwitch setOn:self.entry.status animated:NO];
+        incTextView.text = self.entry.incDescription;
+        _resolutionTextView.text = self.entry.incResolution;
+        if ([self.entry.status isEqualToString:@"resolved"]) {
+            [_statusSwitch setOn:YES];
+        } else {
+            [_statusSwitch setOn:NO];
+        }
+        
         [self checkStatus];
 }
     
@@ -366,7 +384,7 @@
         
         if (!error) {
             
-            NSLog(@" request response from server is :  %@   :  and description of response  %@", response, response.description);
+           
             NSDictionary* jsonResponse = [NSJSONSerialization JSONObjectWithData:data
                                                                          options:kNilOptions
                                                                            error:&error];

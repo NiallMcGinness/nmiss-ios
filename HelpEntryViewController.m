@@ -10,29 +10,29 @@
 #import "UIElements.h"
 #import "CoreDataStack.h"
 #import "HelpData.h"
+#import "textProcessor.h"
 
-@interface HelpEntryViewController () <UITextViewDelegate>
+@interface HelpEntryViewController () <UITableViewDelegate, UITableViewDataSource,UITextViewDelegate>
 
-@property (strong, nonatomic) NSMutableDictionary *helpEntryDict;
-@property (strong, nonatomic) UITextView *helpTextView;
+@property (weak, nonatomic) IBOutlet UITableView *hsDetailTable;
+@property (weak, nonatomic) IBOutlet UITextField *hsTitleField;
+
 
 @end
 
 @implementation HelpEntryViewController
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view.
-    if (self.entry !=nil) {
-        NSLog(@"started textView %@ ", self.entry.body);
-        //self.helpTextView.text = self.entry.body;
-        [self.helpTextView setText:self.entry.body];
-    }
-    [self helpEntryDict];
+    //[super viewDidLoad];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
-    [self.view addSubview:[self helpTextView]];
-    [self.view addSubview:[self editToolbar]];
+    // Do any additional setup after loading the view.
+    if (self.entry.title !=nil) {
+        _hsTitleField.text = self.entry.title;
     }
+   
+}
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -45,81 +45,38 @@
     [self.presentingViewController dismissViewControllerAnimated:NO completion:nil];
 }
 
--(UIToolbar *)editToolbar{
-    UIToolbar *editToolbar = [[UIElements alloc] createTopToolBar];
-    editToolbar.clipsToBounds = true;
+- (IBAction)saveWasPressed:(id)sender {
     
-    UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self    action:@selector(saveWasPressed)];
-    
-    UIBarButtonItem *flexibleButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    
-    
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismissSelf)];
-    
-    //[cancelButton set
-    
-    [editToolbar setItems:@[saveButton, flexibleButton, cancelButton] animated:false];
-    //[self.textView setInputAccessoryView:editToolbar];
-    
-    return editToolbar;
-    
-}
-
--(UITextView *)helpTextView{
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UITextView *helpTextView = [[UITextView alloc] initWithFrame:CGRectMake(10.0, 50.0, screenBounds.size.width - 10 , 50.0)];
-    helpTextView.delegate = self;
-    if (self.entry) {
-       
-        helpTextView.text = self.entry.body;
-    }
-    _helpTextView = helpTextView;
-    return helpTextView;
-}
-
--(NSMutableDictionary *)helpEntryDict{
-    NSMutableDictionary *helpEntryDict = [[NSMutableDictionary alloc] init];
-    _helpEntryDict = helpEntryDict;
-    return _helpEntryDict;
-
-}
-
--(void)saveWasPressed{
-    if (self.entry != nil) {
+    if (self.entry.helpsheetID != nil) {
         [self updateHelpEntry];
     } else {
         [self insertHelp];
     }
-    [self dismissSelf];
+
+}
+- (IBAction)cancelWasPressed:(id)sender {
+     [self dismissSelf];
 }
 
 -(void)insertHelp{
-        if(_helpEntryDict[@"body"] !=nil){
-                CoreDataStack *helpCoreData = [CoreDataStack defaultStack];
+    if(_hsTitleField.text !=nil){
+        CoreDataStack *helpCoreData = [CoreDataStack defaultStack];
         HelpData *newentry = [NSEntityDescription insertNewObjectForEntityForName:@"HelpData" inManagedObjectContext:helpCoreData.managedObjectContext];
-        newentry.body = _helpEntryDict[@"body"];
+        newentry.title = _hsTitleField.text;
         [helpCoreData saveContext];
-        } else {
-         
-        NSLog(@" insert help sheet activated but help entry dict is nil  %@ ", _helpEntryDict[@"body"]);
-        }
-    
-   
+    }
+    [self dismissSelf];
 }
 
 -(void)updateHelpEntry{
-    self.entry.body = _helpEntryDict[@"body"];
+    self.entry.title = _hsTitleField.text;
     
     CoreDataStack *helpCoreData=[CoreDataStack defaultStack];
     [helpCoreData saveContext];
+    
+    [self dismissSelf];
 }
 
-- (void)textViewDidChange:(UITextView *)textView{
-    
-    NSString *currenttext = textView.text;
-    NSLog(@" textview did change %@", textView.text);
-    [_helpEntryDict setObject:currenttext forKey:@"body"];
-}
 
 /*
 #pragma mark - Navigation
@@ -130,5 +87,35 @@
     // Pass the selected object to the new view controller.
 }
 */
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    
+    return 10;
+    
+    
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *text = _entry.helpsheetID;
+    //id textinstance = [[textProcessor alloc] init];
+    CGFloat height =  [textProcessor textBoxHeight:text];
+    return height;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    
+    static NSString *cellID =  @"hsDetailCell";
+    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
+    
+    if (cell == nil ) {
+        
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+    }
+    
+    cell.textLabel.text = _entry.helpsheetID;
+    
+    return cell;
+}
+
 
 @end

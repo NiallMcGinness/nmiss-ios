@@ -18,7 +18,7 @@
 @implementation TabViewController
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
+    //[super viewDidLoad];
     UIColor *nmissOrange = [UIColor colorWithRed:255.0/255.0 green:70.0/255.0 blue:0.0/255.0 alpha:1.0];    [[UITabBar appearance] setTintColor:[UIColor whiteColor]];
     [[UITabBar appearance] setBarTintColor:nmissOrange];
     [[UITabBar appearance] setClipsToBounds:true];
@@ -39,7 +39,6 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
 -(void)viewWillDisappear:(BOOL)animated{
 
     NSLog(@"viewWillDisappear triggered");

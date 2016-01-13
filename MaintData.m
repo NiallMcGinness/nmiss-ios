@@ -11,6 +11,7 @@
 
 @implementation MaintData
 
+@dynamic checklistID;
 @dynamic title;
 @dynamic body;
 @dynamic dateLastChanged;

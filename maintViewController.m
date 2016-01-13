@@ -12,6 +12,7 @@
 #import "CoreDataStack.h"
 #import "MaintData.h"
 #import "MaintEntryViewController.h"
+#import "maintCell.h"
 
 @interface maintViewController () <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate>
 
@@ -24,7 +25,7 @@
 @implementation maintViewController
 
 - (void)viewDidLoad {
-    [super viewDidLoad];
+    //[super viewDidLoad];
     [self updateTableView];
     //[self.navigationController setNavigationBarHidden:YES animated:NO];
     // Do any additional setup after loading the view.
@@ -37,8 +38,6 @@
     [self.view addSubview:[self maintToolbar]];
     [self.fetchedResultsController performFetch:nil];
 }
-
-
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -79,8 +78,6 @@
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
     if ([segue.identifier isEqualToString:@"maintSegue"]) {
         UITableViewCell *cell = sender;
         NSIndexPath *indexPath = [self.MaintTable indexPathForCell:cell];
@@ -120,16 +117,16 @@
     
     static NSString *cellID =  @"maintCell";
     
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
+    maintCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
     
     if (cell == nil ) {
     
-    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+    cell = [[maintCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
     }
     
     MaintData *entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
-    cell.textLabel.text = entry.body;
+    cell.textLabel.text = entry.title;
     
     return cell;
 }
@@ -193,7 +190,7 @@
     NSFetchRequest *fetchrequest = [NSFetchRequest
                                     fetchRequestWithEntityName:@"MaintData" ];
     
-    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"body" ascending:NO]];
+    fetchrequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:NO]];
     
     return fetchrequest;
     

@@ -11,25 +11,22 @@
 #import "CoreDataStack.h"
 #import "MaintData.h"
 
-@interface MaintEntryViewController () <UITextViewDelegate>
+@interface MaintEntryViewController () <UITableViewDelegate, UITableViewDataSource, NSFetchedResultsControllerDelegate>
 
-@property (weak, nonatomic) UITextView *textView;
-@property (strong, nonatomic) NSMutableDictionary *maintEntryDict;
+@property (weak, nonatomic) IBOutlet UITextField *titleField;
+@property (strong, nonatomic) IBOutlet UITableView *clTableDetail;
+
 @end
 
 @implementation MaintEntryViewController
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    [self.navigationController setNavigationBarHidden:YES animated:NO];
-    [self checkSubviews];
-    [self maintEntryDict];
-    [self.view addSubview:[self textView]];
-    [self.view addSubview:[self editToolbar]];
-        
-    // Do any additional setup after loading the view from its nib.
-}
 
+- (void)viewDidLoad {
+    [self.navigationController setNavigationBarHidden:YES animated:NO];
+    if (_entry.title) {
+        _titleField.text = _entry.title;
+    }
+}
 - (void)didReceiveMemoryWarning {
         [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -46,14 +43,19 @@
     
 }
 
--(NSMutableDictionary *)maintEntryDict{
-    NSMutableDictionary *maintEntryDict = [[NSMutableDictionary alloc] init];
-    
-    _maintEntryDict = maintEntryDict;
-    
-    return _maintEntryDict;
+- (IBAction)saveWasPressed:(id)sender {
+    if (self.entry != nil) {
+        [self updateMaintEntry];
+    } else {
+        [self insertMaint];
+    }
+    [self dismissSelf];
+}
+- (IBAction)cancelwasPressed:(id)sender {
+    [self dismissSelf];
 }
 
+/*
 -(void)saveWasPressed{
     if (self.entry != nil) {
         [self updateMaintEntry];
@@ -62,19 +64,24 @@
     }
     [self dismissSelf];
 }
+ 
+ */
+- (IBAction)closeWasPressed:(id)sender {
+    [self dismissSelf];
+}
 
 -(void)updateMaintEntry{
-    self.entry.body = _maintEntryDict[@"body"];
+    self.entry.title = _titleField.text;
     CoreDataStack *maintCoreData = [CoreDataStack defaultStack];
     [maintCoreData saveContext];
 }
 
 -(void)insertMaint{
-    if (_maintEntryDict[@"body"] != nil) {
+    if ( _titleField.text != nil) {
         
         CoreDataStack *maintCoreData = [CoreDataStack defaultStack];
         MaintData *newentry = [NSEntityDescription insertNewObjectForEntityForName:@"MaintData" inManagedObjectContext:maintCoreData.managedObjectContext];
-        newentry.body = _maintEntryDict[@"body"];
+        newentry.title = _titleField.text;
         [maintCoreData saveContext];
     }
     
@@ -84,37 +91,6 @@
     
     
     [self.presentingViewController dismissViewControllerAnimated:NO completion:nil];
-}
-
--(UIToolbar *)editToolbar{
-    UIToolbar *editToolbar = [[UIElements alloc] createTopToolBar];
-    editToolbar.clipsToBounds = true;
-    
-    UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self    action:@selector(saveWasPressed)];
-    
-    UIBarButtonItem *flexibleButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
-    
-    
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismissSelf)];
-    
-    //[cancelButton set
-    
-    [editToolbar setItems:@[saveButton, flexibleButton, cancelButton] animated:false];
-    //[self.textView setInputAccessoryView:editToolbar];
-    
-    return editToolbar;
-    
-}
-
--(UITextView *)textView{
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(10.0, 50.0, screenBounds.size.width - 10 , 50.0)];
-    textView.delegate = self;
-    if (self.entry) {
-        textView.text = self.entry.body;
-    }
-    return textView;
-
 }
 
 /*
@@ -127,28 +103,28 @@
 }
 */
 
-- (BOOL)textViewShouldBeginEditing:(UITextView *)textView{
-    return YES;
-}
-- (void)textViewDidBeginEditing:(UITextView *)textView
-{
-    [textView becomeFirstResponder];
-}
-
-- (void)textViewDidChange:(UITextView *)textView{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     
-    NSString *currenttext = textView.text;
-    NSLog(@" textview did change %@", textView.text);
-    [_maintEntryDict setObject:currenttext forKey:@"body"];
+    return 10;
+    
+    
 }
 
-- (void)textViewDidEndEditing:(UITextView *)textView
-{
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
+    static NSString *cellID =  @"maintDetailCell";
     
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID];
     
-    NSLog(@" textview did end editing ");
-    [textView resignFirstResponder];
+    if (cell == nil ) {
+        
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellID];
+    }
+    NSLog(@"index path %ld", (long)indexPath.row);
+    cell.textLabel.text = _entry.checklistID;
+    
+    return cell;
 }
 
 
