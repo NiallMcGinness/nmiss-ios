@@ -9,6 +9,7 @@
 #import "helpViewController.h"
 #import "UIElements.h"
 #import "IconMaker.h"
+#import "textProcessor.h"
 #import "CoreDataStack.h"
 #import "HelpData.h"
 #import "HelpEntryViewController.h"
@@ -33,9 +34,13 @@
     [[UITabBarItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
                                                        [UIColor whiteColor], NSForegroundColorAttributeName,
                                                        nil] forState:UIControlStateSelected];
-    [self.view addSubview:[self helpToolbar]];
+    //[self.view addSubview:[self helpToolbar]];
     [self.fetchedResultsController performFetch:nil];
 
+}
+
+-(void)viewWillAppear:(BOOL)animated{
+    [self.helpTable reloadData];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -57,7 +62,7 @@
     
     NSString *storyboardName =  @"Main";
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:storyboardName bundle: nil];
-    UIViewController * helpvc = [storyboard instantiateViewControllerWithIdentifier:@"helpEdit"];
+    HelpEntryViewController * helpvc = [storyboard instantiateViewControllerWithIdentifier:@"helpEdit"];
     [self presentViewController:helpvc animated:NO completion:nil];
 
 }
@@ -85,13 +90,27 @@
 // In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"helpSegue"]) {
-        NSLog(@" segue triggered ");
+        NSLog(@" segue to load existing help sheet triggered ");
         UITableViewCell *cell = sender;
         NSIndexPath *indexPath = [self.helpTable indexPathForCell:cell];
         UINavigationController *navigationController = segue.destinationViewController;
         HelpEntryViewController *helpEntryViewController = (HelpEntryViewController *)
         navigationController.topViewController;
         helpEntryViewController.entry = [self.fetchedResultsController objectAtIndexPath:indexPath];
+        
+    } else if ([segue.identifier isEqualToString:@"addNewHelpSheet"]){
+        NSLog(@" segue to load new help sheet triggered ");        NSMutableString *sheetID = [textProcessor generateID];
+        CoreDataStack *CoreData = [CoreDataStack defaultStack];
+        HelpData *newSheet = [NSEntityDescription insertNewObjectForEntityForName:@"HelpData" inManagedObjectContext:CoreData.managedObjectContext];
+        newSheet.title = @"Untitled";
+        newSheet.helpsheetID = sheetID;
+        [CoreData saveContext];
+        
+        UINavigationController *navigationController = segue.destinationViewController;
+        HelpEntryViewController *helpEntryViewController = (HelpEntryViewController *)
+        navigationController.topViewController;
+        helpEntryViewController.entry = newSheet;
+
     }
     
 }
@@ -106,7 +125,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     
-    id <NSFetchedResultsSectionInfo> sectionInfo = [self.fetchedResultsController                                                     sections][section];
+    id <NSFetchedResultsSectionInfo> sectionInfo = [self.fetchedResultsController sections][section];
     return [sectionInfo numberOfObjects];
     
     

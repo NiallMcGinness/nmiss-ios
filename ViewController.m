@@ -18,6 +18,7 @@
 #import "IncData.h"
 #import "HelpData.h"
 #import "MaintData.h"
+#import "textProcessor.h"
 
 @interface ViewController ()  <NSFetchedResultsControllerDelegate>
 
@@ -39,12 +40,10 @@
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     UIToolbar *mainToolbar = [[[UIElements alloc] createMainToolbar] init];
     [self.view addSubview:mainToolbar];
-    NSLog(@" root viewDidLoad called ");
-    
     for (UIBarButtonItem *item in mainToolbar.items) {
         if (item.tag == 1 ) {
             [item setAction:@selector(loadMaintView)];
@@ -56,7 +55,7 @@
     
     [self mainButtonSetup];
 
-    [self loadAll];
+   // [self loadAll];
     
 }
 

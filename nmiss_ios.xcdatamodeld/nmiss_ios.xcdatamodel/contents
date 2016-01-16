@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="9057" systemVersion="15B42" minimumToolsVersion="Automatic">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="9525" systemVersion="15C50" minimumToolsVersion="Automatic">
     <entity name="HelpData" representedClassName="HelpData" syncable="YES">
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="dateChanged" optional="YES" attributeType="Date" syncable="YES"/>
@@ -32,8 +32,8 @@
     </entity>
     <elements>
         <element name="HelpData" positionX="-36" positionY="45" width="128" height="135"/>
+        <element name="HelpDetail" positionX="-45" positionY="63" width="128" height="105"/>
         <element name="IncData" positionX="-54" positionY="18" width="128" height="150"/>
         <element name="MaintData" positionX="-63" positionY="-18" width="128" height="120"/>
-        <element name="HelpDetail" positionX="-45" positionY="63" width="128" height="105"/>
     </elements>
 </model>

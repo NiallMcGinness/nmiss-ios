@@ -11,6 +11,6 @@
 @interface textProcessor : UITextView
 
 +(CGFloat)textBoxHeight:(NSString *)inputString;
-
++(NSMutableString *)generateID;
 
 @end

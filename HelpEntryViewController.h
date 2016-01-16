@@ -9,9 +9,10 @@
 #import <UIKit/UIKit.h>
 
 @class HelpData;
+@class HelpDetail;
 
 @interface HelpEntryViewController : UIViewController
 
 @property  (nonatomic,strong) HelpData *entry;
-
+@property  (nonatomic,strong) HelpDetail *entryStep;
 @end
